@@ -131,5 +131,15 @@ void Graph::subgraphVertexCover(bool useLinearProgramming, std::vector<bool>& ta
 }
 
 std::vector<bool> Graph::findVertexCover(bool useLinearProgramming) {
-    return std::vector<bool>(); // TODO
+    std::vector<bool> taken(n), removed(n, false), bestCover(n, true);
+    std::vector<int> degree(n, 0);
+    std::set<std::pair<int,int>> vertices;
+
+    for (int i = 0; i < n; i++) {
+        degree[i] = (int) graph[i].size();
+        vertices.insert({degree[i], i});
+    }
+
+    subgraphVertexCover(useLinearProgramming, taken, removed, degree, vertices, bestCover);
+    return bestCover;
 }

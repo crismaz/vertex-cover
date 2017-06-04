@@ -17,6 +17,8 @@ public:
 
     void addEdge(int, int);
     std::vector<bool> findVertexCover(bool);
+
+    bool isVertexCover(std::vector<bool>&);
 };
 
 

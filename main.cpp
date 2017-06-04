@@ -1,4 +1,5 @@
 #include "Graph.h"
+#include <cassert>
 #include <iostream>
 
 Graph readGraph(std::istream& stream = std::cin) {
@@ -32,6 +33,8 @@ int main() {
             std::cout << i << ' ';
         }
     }
+
+    assert(graph.isVertexCover(vertexCover));
 
     return 0;
 }

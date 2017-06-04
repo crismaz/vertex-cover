@@ -21,6 +21,11 @@ std::vector<std::pair<int,int>> getRandomGraph(int n, int vertexCoverSize, doubl
     std::vector<int> vertexCoverVec(vertexCover.begin(), vertexCover.end());
 
     int numEdges = (int) (n * (n - 1) / 2 * density);
+    int maxEdges = vertexCoverSize * (vertexCoverSize - 1) / 2 + vertexCoverSize * (n - vertexCoverSize);
+
+    if (numEdges > maxEdges) {
+        throw new std::invalid_argument("Density too high");
+    }
 
     std::set<std::pair<int,int>> edges;
     while (edges.size() < numEdges) {
@@ -40,5 +45,12 @@ std::vector<std::pair<int,int>> getRandomGraph(int n, int vertexCoverSize, doubl
 };
 
 int main() {
+    int n, vertexCoverSize;
+    double density;
+
+    std::cin >> n >> vertexCoverSize >> density;
+
+    printGraph(n, getRandomGraph(n, vertexCoverSize, density));
+
     return 0;
 }

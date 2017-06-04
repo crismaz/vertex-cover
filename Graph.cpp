@@ -1,3 +1,4 @@
+#include <iostream>
 #include "BipartiteGraph.h"
 #include "Graph.h"
 
@@ -142,4 +143,16 @@ std::vector<bool> Graph::findVertexCover(bool useLinearProgramming) {
 
     subgraphVertexCover(useLinearProgramming, taken, removed, degree, vertices, bestCover);
     return bestCover;
+}
+
+bool Graph::isVertexCover(std::vector<bool>& cover) {
+    for (int v = 0; v < n; v++) {
+        for (int u : graph[v]) {
+            if (!cover[v] && !cover[u]) {
+                return false;
+            }
+        }
+    }
+
+    return true;
 }

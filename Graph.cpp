@@ -92,9 +92,7 @@ void Graph::subgraphVertexCover(bool useLinearProgramming, std::vector<bool>& ta
         }
     }
 
-    if (vertices.empty()) {
-        updateCover(taken, bestCover);
-    } else if (vertices.begin()->first <= 1) {
+    while (!vertices.empty() && vertices.begin()->first <= 1) {
         int v = vertices.begin()->second;
 
         taken[v] = false;
@@ -106,8 +104,10 @@ void Graph::subgraphVertexCover(bool useLinearProgramming, std::vector<bool>& ta
             taken[u] = true;
             removeVertex(u);
         }
+    }
 
-        subgraphVertexCover(useLinearProgramming, taken, removed, degree, vertices, bestCover);
+    if (vertices.empty()) {
+        updateCover(taken, bestCover);
     } else {
         int v = vertices.rbegin()->second;
         removeVertex(v);

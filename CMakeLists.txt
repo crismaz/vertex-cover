@@ -8,3 +8,4 @@ add_executable(vertex_cover ${SOURCE_FILES})
 add_executable(test_gen gen.cpp)
 
 target_compile_options(vertex_cover PRIVATE -O2)
+target_compile_options(test_gen PRIVATE -O2)

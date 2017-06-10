@@ -9,14 +9,14 @@ class Graph {
     std::size_t n;
     std::vector<std::vector<int>> graph;
 
-    void subgraphVertexCover(bool, std::vector<bool>&, std::vector<bool>&, std::vector<int>&,
+    void subgraphVertexCover(bool, bool, std::vector<bool>&, std::vector<bool>&, std::vector<int>&,
                              std::set<std::pair<int,int>>&, std::vector<bool>&);
 
 public:
     Graph(std::size_t);
 
     void addEdge(int, int);
-    std::vector<bool> findVertexCover(bool);
+    std::vector<bool> findVertexCover(bool, bool);
 
     bool isVertexCover(std::vector<bool>&);
 };

@@ -25,7 +25,7 @@ int main() {
     std::ios_base::sync_with_stdio(false);
 
     Graph graph = readGraph();
-    auto vertexCover = graph.findVertexCover(true);
+    auto vertexCover = graph.findVertexCover(true, true);
 
     std::cout << std::count(vertexCover.begin(), vertexCover.end(), true) << '\n';
     for (int i = 0; i < vertexCover.size(); i++) {

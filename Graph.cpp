@@ -9,7 +9,7 @@ void Graph::addEdge(int u, int v) {
     graph[v].push_back(u);
 }
 
-std::vector<int> solveHalfIntegralLinearProgramming(std::vector<std::vector<int>>& graph, std::vector<bool>& removed) {
+BipartiteGraph createDoubledGraph(std::vector<std::vector<int>>& graph, std::vector<bool>& removed) {
     std::size_t n = graph.size();
 
     std::vector<bool> side(2 * n);
@@ -29,11 +29,53 @@ std::vector<int> solveHalfIntegralLinearProgramming(std::vector<std::vector<int>
         }
     }
 
-    auto inCover = bipartiteGraph.findVertexCover();
+    return bipartiteGraph;
+}
 
+std::vector<int> lpSolutionFromCover(std::size_t n, const std::vector<bool>& inCover) {
     std::vector<int> lpSolution(n);
     for (int i = 0; i < n; i++) {
         lpSolution[i] = inCover[i] + inCover[i + n];
+    }
+
+    return lpSolution;
+}
+
+std::vector<int> solveHalfIntegralLinearProgramming(std::vector<std::vector<int>>& graph, std::vector<bool>& removed,
+                                                    bool anySolution) {
+    std::size_t n = graph.size();
+    auto bipartiteGraph = createDoubledGraph(graph, removed);
+
+    auto mate = bipartiteGraph.findMatching();
+    auto lpSolution = lpSolutionFromCover(n, bipartiteGraph.findVertexCoverFromMatching(mate));
+
+    int willBeRemoved = 0;
+    for (int i = 0; i < n; i++) {
+        willBeRemoved += !removed[i] && lpSolution[i] != 1;
+    }
+
+    if (!anySolution && willBeRemoved == 0) {
+        for (int i = 0; i < n; i++) {
+            if (mate[i] != -1 && mate[i + n] != -1) {
+                auto mateCpy = mate;
+                mateCpy[i] = mateCpy[i + n] = -1;
+
+                std::replace(mateCpy.begin(), mateCpy.end(), i, -1);
+                std::replace(mateCpy.begin(), mateCpy.end(), (int) (i + n), -1);
+
+                removed[i] = true;
+                auto bipartiteGraphCpy = createDoubledGraph(graph, removed);
+
+                removed[i] = false;
+
+                if (!bipartiteGraphCpy.findAugmentingPath(mateCpy)) {
+                    lpSolution = lpSolutionFromCover(n, bipartiteGraphCpy.findVertexCoverFromMatching(mateCpy));
+                    lpSolution[i] = 2;
+
+                    break;
+                }
+            }
+        }
     }
 
     return lpSolution;
@@ -69,9 +111,9 @@ void updateCover(std::vector<bool>& currentCover, std::vector<bool>& bestCover) 
     }
 }
 
-void Graph::subgraphVertexCover(bool useLinearProgramming, std::vector<bool>& taken, std::vector<bool>& removed,
-                                std::vector<int>& degree, std::set<std::pair<int, int>>& vertices,
-                                std::vector<bool>& bestCover) {
+void Graph::subgraphVertexCover(bool useLinearProgramming, bool anyLpSolution, std::vector<bool>& taken,
+                                std::vector<bool>& removed, std::vector<int>& degree,
+                                std::set<std::pair<int, int>>& vertices, std::vector<bool>& bestCover) {
     std::vector<int> verticesToRestore;
 
     auto removeVertex = [&](int v) {
@@ -80,7 +122,7 @@ void Graph::subgraphVertexCover(bool useLinearProgramming, std::vector<bool>& ta
     };
 
     if (useLinearProgramming) {
-        auto lpSolution = solveHalfIntegralLinearProgramming(graph, removed);
+        auto lpSolution = solveHalfIntegralLinearProgramming(graph, removed, anyLpSolution);
 
         for (int v = 0; v < n; v++) {
             if (!removed[v] && lpSolution[v] != 1) {
@@ -113,7 +155,7 @@ void Graph::subgraphVertexCover(bool useLinearProgramming, std::vector<bool>& ta
         removeVertex(v);
 
         taken[v] = true;
-        subgraphVertexCover(useLinearProgramming, taken, removed, degree, vertices, bestCover);
+        subgraphVertexCover(useLinearProgramming, anyLpSolution, taken, removed, degree, vertices, bestCover);
 
         taken[v] = false;
         for (int u : graph[v]) {
@@ -123,7 +165,7 @@ void Graph::subgraphVertexCover(bool useLinearProgramming, std::vector<bool>& ta
             }
         }
 
-        subgraphVertexCover(useLinearProgramming, taken, removed, degree, vertices, bestCover);
+        subgraphVertexCover(useLinearProgramming, anyLpSolution, taken, removed, degree, vertices, bestCover);
     }
 
     for (int i : verticesToRestore) {
@@ -131,7 +173,7 @@ void Graph::subgraphVertexCover(bool useLinearProgramming, std::vector<bool>& ta
     }
 }
 
-std::vector<bool> Graph::findVertexCover(bool useLinearProgramming) {
+std::vector<bool> Graph::findVertexCover(bool useLinearProgramming, bool anyLpSolution) {
     std::vector<bool> taken(n), removed(n, false), bestCover(n, true);
     std::vector<int> degree(n, 0);
     std::set<std::pair<int,int>> vertices;
@@ -141,7 +183,7 @@ std::vector<bool> Graph::findVertexCover(bool useLinearProgramming) {
         vertices.insert({degree[i], i});
     }
 
-    subgraphVertexCover(useLinearProgramming, taken, removed, degree, vertices, bestCover);
+    subgraphVertexCover(useLinearProgramming, anyLpSolution, taken, removed, degree, vertices, bestCover);
     return bestCover;
 }
 

@@ -122,16 +122,23 @@ void Graph::subgraphVertexCover(bool useLinearProgramming, bool anyLpSolution, s
     };
 
     if (useLinearProgramming) {
-        auto lpSolution = solveHalfIntegralLinearProgramming(graph, removed, anyLpSolution);
+        bool changed;
 
-        for (int v = 0; v < n; v++) {
-            if (!removed[v] && lpSolution[v] != 1) {
-                bool take = lpSolution[v] == 2;
+        do {
+            changed = false;
+            auto lpSolution = solveHalfIntegralLinearProgramming(graph, removed, anyLpSolution);
 
-                taken[v] = take;
-                removeVertex(v);
+            for (int v = 0; v < n; v++) {
+                if (!removed[v] && lpSolution[v] != 1) {
+                    bool take = lpSolution[v] == 2;
+
+                    taken[v] = take;
+                    removeVertex(v);
+
+                    changed = true;
+                }
             }
-        }
+        } while (changed);
     }
 
     while (!vertices.empty() && vertices.begin()->first <= 1) {

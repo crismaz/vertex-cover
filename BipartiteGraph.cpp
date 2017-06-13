@@ -12,7 +12,7 @@ void BipartiteGraph::addEdge(int u, int v) {
 }
 
 /// Finds an augmenting path from the given vertex, and if found, uses it to improve the matching
-bool BipartiteGraph::findAugmentingPathFrom(int v, std::vector<int>& mate, std::vector<bool>& visited) {
+bool BipartiteGraph::findAugmentingPathFrom(int v, std::vector<int>& mate, std::vector<bool>& visited) const {
     if (visited[v]) {
         return false;
     }
@@ -34,7 +34,7 @@ bool BipartiteGraph::findAugmentingPathFrom(int v, std::vector<int>& mate, std::
 ///
 /// \param mate see BipartiteGraph::findMatching
 /// \return true if at least one path was found
-bool BipartiteGraph::findAugmentingPaths(std::vector<int>& mate) {
+bool BipartiteGraph::findAugmentingPaths(std::vector<int>& mate) const {
     std::vector<bool> visited(n, false);
 
     bool found = false;
@@ -47,18 +47,18 @@ bool BipartiteGraph::findAugmentingPaths(std::vector<int>& mate) {
     return found;
 }
 
-bool BipartiteGraph::isMatchingOptimal(std::vector<int> mate) {
+bool BipartiteGraph::isMatchingOptimal(std::vector<int> mate) const {
     return !findAugmentingPaths(mate);
 }
 
-std::vector<int> BipartiteGraph::findMatching() {
+std::vector<int> BipartiteGraph::findMatching() const {
     std::vector<int> mate(n, -1);
     while (findAugmentingPaths(mate)) {}
 
     return mate;
 }
 
-std::vector<bool> BipartiteGraph::findVertexCoverFromMatching(const std::vector<int>& mate) {
+std::vector<bool> BipartiteGraph::findVertexCoverFromMatching(const std::vector<int>& mate) const {
     std::vector<bool> visited(n, false);
     std::queue <int> q;
     for (int i = 0; i < n; i++) {

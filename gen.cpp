@@ -2,6 +2,14 @@
 #include <set>
 #include <vector>
 
+/// Prints the graph to the output stream
+///
+/// If n and m are the number of vertices and edges respectively, then the output format is:
+///     n m
+///     u1 v1
+///     u2 v2
+///      ...
+///     um vm
 void printGraph(int n, const std::vector<std::pair<int,int>>& edges, std::ostream& stream = std::cout) {
     stream << n << ' ' << edges.size() << '\n';
 
@@ -10,10 +18,17 @@ void printGraph(int n, const std::vector<std::pair<int,int>>& edges, std::ostrea
     }
 }
 
+/// Returns a random integer from the set [0, 1, ..., range-1]
 int randomInt(int range) { return rand() % range; }
 
+/// Creates a random undirected graph with the given parameters
+///
+/// \param n               number of vertices
+/// \param vertexCoverSize target vertex cover size (the actual vertex cover size can be smaller!)
+/// \param density         required density of the graph
+/// \return                a vector of pairs, each pair being an undirected edge in the resulting graph
 std::vector<std::pair<int,int>> getRandomGraph(int n, int vertexCoverSize, double density) {
-    std::set<int> vertexCover;
+    std::set<int> vertexCover; // vertices that will form a valid vertex cover in the constructed graph
     while (vertexCover.size() < vertexCoverSize) {
         vertexCover.insert(randomInt(n));
     }

@@ -2,6 +2,7 @@
 #include <cassert>
 #include <iostream>
 
+/// Reads the graph from the input stream - see printGraph for input format
 Graph readGraph(std::istream& stream = std::cin) {
     std::size_t  n;
     stream >> n;
@@ -34,7 +35,7 @@ int main() {
         }
     }
 
-    assert(graph.isVertexCover(vertexCover));
+    assert(graph.isVertexCover(vertexCover)); // check that a valid vertex cover was found
 
     return 0;
 }

@@ -5,12 +5,13 @@ BipartiteGraph::BipartiteGraph(std::size_t n, std::vector<bool>& side): n(n), gr
 }
 
 void BipartiteGraph::addEdge(int u, int v) {
-    assert(side[u] != side[v]);
+    assert(side[u] != side[v]); // check that the graph is kept bipartite
 
     graph[u].push_back(v);
     graph[v].push_back(u);
 }
 
+/// Finds an augmenting path from the given vertex, and if found, uses it to improve the matching
 bool BipartiteGraph::findAugmentingPathFrom(int v, std::vector<int>& mate, std::vector<bool>& visited) {
     if (visited[v]) {
         return false;
@@ -18,16 +19,22 @@ bool BipartiteGraph::findAugmentingPathFrom(int v, std::vector<int>& mate, std::
 
     visited[v] = true;
 
-    for (int u : graph[v]) if (mate[u] == -1 || findAugmentingPathFrom(mate[u], mate, visited)) {
+    for (int u : graph[v]) {
+        if (mate[u] == -1 || findAugmentingPathFrom(mate[u], mate, visited)) {
             mate[v] = u;
             mate[u] = v;
             return true;
         }
+    }
 
     return false;
 }
 
-bool BipartiteGraph::findAugmentingPath(std::vector<int>& mate) {
+/// Find (possibly many) augmenting paths in a single graph traversal
+///
+/// \param mate see BipartiteGraph::findMatching
+/// \return true if at least one path was found
+bool BipartiteGraph::findAugmentingPaths(std::vector<int>& mate) {
     std::vector<bool> visited(n, false);
 
     bool found = false;
@@ -40,9 +47,13 @@ bool BipartiteGraph::findAugmentingPath(std::vector<int>& mate) {
     return found;
 }
 
+bool BipartiteGraph::isMatchingOptimal(std::vector<int> mate) {
+    return !findAugmentingPaths(mate);
+}
+
 std::vector<int> BipartiteGraph::findMatching() {
     std::vector<int> mate(n, -1);
-    while (findAugmentingPath(mate)) {}
+    while (findAugmentingPaths(mate)) {}
 
     return mate;
 }
@@ -57,7 +68,7 @@ std::vector<bool> BipartiteGraph::findVertexCoverFromMatching(std::vector<int>& 
         }
     }
 
-    while (!q.empty()) {
+    while (!q.empty()) { // breadth first search
         int u = q.front();
         q.pop();
 

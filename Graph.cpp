@@ -86,7 +86,7 @@ std::vector<int> solveHalfIntegralLinearProgramming(const std::vector<std::vecto
 
                 removed[i] = false;
 
-                if (!bipartiteGraphCpy.findAugmentingPath(mateCpy)) {
+                if (bipartiteGraphCpy.isMatchingOptimal(mateCpy)) {
                     lpSolution = lpSolutionFromCover(n, bipartiteGraphCpy.findVertexCoverFromMatching(mateCpy));
                     lpSolution[i] = 2;
 

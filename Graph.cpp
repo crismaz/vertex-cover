@@ -197,16 +197,19 @@ void Graph::subgraphVertexCover(bool useLinearProgramming, bool anyLpSolution, s
         taken[v] = true;
         subgraphVertexCover(useLinearProgramming, anyLpSolution, taken, removed, degree, vertices, bestCover);
 
-        // second branch - don't include v in the vertex cover
-        taken[v] = false;
-        for (int u : graph[v]) {
-            if (!removed[u]) {
-                taken[u] = true;
-                removeVertex(u);
+        // if v has degree 2 then the graph consists of disjoint cycles, and wlog v can be included in the vertex cover
+        if (degree[v] > 2) {
+            // second branch - don't include v in the vertex cover
+            taken[v] = false;
+            for (int u : graph[v]) {
+                if (!removed[u]) {
+                    taken[u] = true;
+                    removeVertex(u);
+                }
             }
-        }
 
-        subgraphVertexCover(useLinearProgramming, anyLpSolution, taken, removed, degree, vertices, bestCover);
+            subgraphVertexCover(useLinearProgramming, anyLpSolution, taken, removed, degree, vertices, bestCover);
+        }
     }
 
     // restore vertices removed in the current call

@@ -1,6 +1,6 @@
 #include "BipartiteGraph.h"
 
-BipartiteGraph::BipartiteGraph(std::size_t n, std::vector<bool>& side): n(n), graph(n), side(side) {
+BipartiteGraph::BipartiteGraph(std::size_t n, const std::vector<bool>& side): n(n), graph(n), side(side) {
     assert(side.size() == n);
 }
 
@@ -58,7 +58,7 @@ std::vector<int> BipartiteGraph::findMatching() {
     return mate;
 }
 
-std::vector<bool> BipartiteGraph::findVertexCoverFromMatching(std::vector<int>& mate) {
+std::vector<bool> BipartiteGraph::findVertexCoverFromMatching(const std::vector<int>& mate) {
     std::vector<bool> visited(n, false);
     std::queue <int> q;
     for (int i = 0; i < n; i++) {

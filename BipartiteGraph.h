@@ -21,7 +21,7 @@ class BipartiteGraph {
 
 public:
     /// Creates an empty bipartite graph with n vertices
-    BipartiteGraph(std::size_t n, std::vector<bool>& side);
+    BipartiteGraph(std::size_t n, const std::vector<bool>& side);
 
     /// Adds an undirected edge between vertices u and v
     void addEdge(int u, int v);
@@ -41,7 +41,7 @@ public:
     ///
     /// \param mate see BipartiteGraph::findMatching
     /// \return a vector of size n, containing true for vertices belonging to the vertex cover
-    std::vector<bool> findVertexCoverFromMatching(std::vector<int>& mate);
+    std::vector<bool> findVertexCoverFromMatching(const std::vector<int>& mate);
 };
 
 

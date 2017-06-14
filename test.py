@@ -56,8 +56,8 @@ def get_time():
     ''' Return user time since the beginning of execution '''
     return getrusage(RUSAGE_CHILDREN).ru_utime
     
-def run_with_input(path, inp):
-    proc = Popen(["./" + path], bufsize=0, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
+def run_with_input(path, args, inp):    
+    proc = Popen(["./" + path] + args, bufsize=0, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
     return proc.communicate(input = inp)[0].decode()
 
 def main():
@@ -93,25 +93,48 @@ def main():
     print "\nDensity:"
     densities = read_range(float)
     
-    for size in sizes:
-        for vc_ratio in vertex_cover_ratios:
-            vc_size = int(size * vc_ratio)
-            
-            print "\nn = %d, vc_size = %d" % (size, vc_size)
+    tmp = ""
+    while tmp != "T" and tmp != "F":
+        print "\nUse linear programming? (T/F)"
+        tmp = raw_input()
+    
+    useLinearProgramming = (tmp == "T")
+    
+    if useLinearProgramming:
+        tmp = ""
+        while tmp != "T" and tmp != "F":
+            print "\nUse any lp solution (if true, the program will not check if all-1/2 is the only solution)? (T/F)"
+            tmp = raw_input()
         
-            for density in densities:
-                print "density = %.2f, time:" % density,
+        anyLpSolution = (tmp == "T")
+    else:
+        anyLpSolution = False
+        
+    args = []
+
+    if useLinearProgramming:
+        args.append("-useLp")
+    
+    if anyLpSolution:
+        args.append("-anyLpSolution")
+    
+    for vc_ratio in vertex_cover_ratios:
+        for density in densities:
+            print "\nvc_ratio = %.2f, density = %.2f" % (vc_ratio, density)
+        
+            for size in sizes:
+                vc_size = int(size * vc_ratio)
                 inp = "%s %s %s" % (size, vc_size, density)
                 
                 ''' Run test generator and save output as out '''
-                out = run_with_input(test_gen_bin, inp)
+                out = run_with_input(test_gen_bin, [], inp)
                 
                 start_time = get_time()
                 
                 ''' Run vertex cover solver '''
-                run_with_input(vc_bin, out)
+                run_with_input(vc_bin, args, out)
                                 
-                print "%6.2fs" % (get_time() - start_time)
+                print str(size) + ' ' * (6 - len(str(size))) + "%6.2fs" % (get_time() - start_time)
 
                 
 if __name__=="__main__":

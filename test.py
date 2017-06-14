@@ -59,10 +59,15 @@ def get_time():
 def run_with_input(path, args, inp):    
     proc = Popen(["./" + path] + args, bufsize=0, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
     return proc.communicate(input = inp)[0].decode()
+    
+raw = False
+    
+def proper_print(s):
+    if not raw: print s
 
 def main():
-    if len(sys.argv) != 3:
-        print "Usage: python test.py VERTEX_COVER_BIN_DIR TEST_GENERATOR_BIN_DIR"
+    if len(sys.argv) < 3:
+        print "Usage: python test.py VERTEX_COVER_BIN_DIR TEST_GENERATOR_BIN_DIR [-raw]"
         return 
         
     vc_bin = sys.argv[1]
@@ -75,27 +80,31 @@ def main():
     if not is_exe(test_gen_bin):
         print "Invalid test generator binary"
         return
-        
-    print ("Enter:\n"
-           "\t- number of vertices (int)\n"
-           "\t- ratio of vertex cover size to the number of vertices (float)\n"
-           "\t- density (float)")
+    
+    if len(sys.argv) > 3 and sys.argv[3] == "-raw":
+        global raw
+        raw = True
+    
+    proper_print ("Enter:\n"
+                  "\t- number of vertices (int)\n"
+                  "\t- ratio of vertex cover size to the number of vertices (float)\n"
+                  "\t- density (float)")
            
-    print ("For each, enter either a single value, or a range in the format:"
-           "START END NUM_OF_VALUES")
+    proper_print ("For each, enter either a single value, or a range in the format:"
+                  "START END NUM_OF_VALUES")
 
-    print "\nNumber of vertices:"
+    proper_print ("\nNumber of vertices:")
     sizes = read_range(int)
     
-    print "\nVertex cover ratio:"
+    proper_print ("\nVertex cover ratio:")
     vertex_cover_ratios = read_range(float)
     
-    print "\nDensity:"
+    proper_print ("\nDensity:")
     densities = read_range(float)
     
     tmp = ""
     while tmp != "T" and tmp != "F":
-        print "\nUse linear programming? (T/F)"
+        proper_print ("\nUse linear programming? (T/F)")
         tmp = raw_input()
     
     useLinearProgramming = (tmp == "T")
@@ -103,7 +112,8 @@ def main():
     if useLinearProgramming:
         tmp = ""
         while tmp != "T" and tmp != "F":
-            print "\nUse any lp solution (if true, the program will not check if all-1/2 is the only solution)? (T/F)"
+            proper_print ("\nUse any lp solution(if true, the program will not check if"
+                          "all-1/2 is the only solution)? (T/F)")
             tmp = raw_input()
         
         anyLpSolution = (tmp == "T")
@@ -120,7 +130,7 @@ def main():
     
     for vc_ratio in vertex_cover_ratios:
         for density in densities:
-            print "\nvc_ratio = %.2f, density = %.2f" % (vc_ratio, density)
+            proper_print ("\nvc_ratio = %.2f, density = %.2f" % (vc_ratio, density))
         
             for size in sizes:
                 vc_size = int(size * vc_ratio)
@@ -133,8 +143,13 @@ def main():
                 
                 ''' Run vertex cover solver '''
                 run_with_input(vc_bin, args, out)
-                                
-                print str(size) + ' ' * (6 - len(str(size))) + "%6.2fs" % (get_time() - start_time)
+                
+                time_taken = get_time() - start_time
+                
+                if raw:
+                    print "%d %.2f" % (size, time_taken)
+                else:
+                    print str(size) + ' ' * (6 - len(str(size))) + "%6.2fs" % time_taken
 
                 
 if __name__=="__main__":

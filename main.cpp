@@ -1,7 +1,6 @@
 #include "Graph.h"
 #include <cassert>
 #include <iostream>
-#include <string>
 
 /// Reads the graph from the input stream - see printGraph for input format
 Graph readGraph(std::istream& stream = std::cin) {

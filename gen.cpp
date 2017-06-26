@@ -61,6 +61,7 @@ std::vector<std::pair<int,int>> getRandomGraph(int n, int vertexCoverSize, doubl
 
 int main() {
     std::ios_base::sync_with_stdio(false);
+    srand(time(0));
 
     int n, vertexCoverSize;
     double density;

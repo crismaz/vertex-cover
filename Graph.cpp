@@ -1,4 +1,5 @@
 #include <iostream>
+#include <numeric>
 #include "BipartiteGraph.h"
 #include "Graph.h"
 
@@ -56,7 +57,7 @@ std::vector<int> lpSolutionFromCover(std::size_t n, const std::vector<bool>& inC
 /// \param anySolution see Graph::subgraphVertexCover
 /// \return vector with n elements, element i is equal to 2x(i) where x is the LP solution
 std::vector<int> solveHalfIntegralLinearProgramming(const std::vector<std::vector<int>>& graph,
-                                                    std::vector<bool>& removed, bool anySolution) {
+                                                    std::vector<bool>& removed, bool anySolution, int branchOn = -1) {
     std::size_t n = graph.size();
     auto bipartiteGraph = createDoubledGraph(graph, removed);
 
@@ -69,30 +70,43 @@ std::vector<int> solveHalfIntegralLinearProgramming(const std::vector<std::vecto
     }
 
     if (!anySolution && willBeRemoved == 0) { // the obtained solution assigns x(v) = 1/2 for all unremoved vertices v
-        for (int i = 0; i < n; i++) {
-            // check if there exists an optimal LP solution that assigns x(i) = 1
-            // which is equivalent to checking if after removing i, the optimal LP cost drops by 1
-            if (mate[i] != -1 && mate[i + n] != -1) {
-                // copy the maximum matching to use as a starting point
-                // when finding maximum matching with vertex i removed
-                auto mateCpy = mate;
-                mateCpy[i] = mateCpy[i + n] = -1;
+        assert(branchOn != -1);
 
-                std::replace(mateCpy.begin(), mateCpy.end(), i, -1);
-                std::replace(mateCpy.begin(), mateCpy.end(), (int) (i + n), -1);
+        // check if there exists an optimal LP solution that assigns x(branchOn) to 0 or 1
+        auto sum = [](const std::vector <int> &vec) { return std::accumulate(vec.begin(), vec.end(), 0); };
+        auto removedCpy = removed;
 
-                removed[i] = true; // temporarily mark i as removed
-                auto bipartiteGraphCpy = createDoubledGraph(graph, removed);
+        int optCost = sum(lpSolution);
 
-                removed[i] = false;
+        removedCpy[branchOn] = true;
 
-                if (bipartiteGraphCpy.isMatchingOptimal(mateCpy)) {
-                    lpSolution = lpSolutionFromCover(n, bipartiteGraphCpy.findVertexCoverFromMatching(mateCpy));
-                    lpSolution[i] = 2;
+        // x(branchOn) = 1
+        auto lpSolutionTake = solveHalfIntegralLinearProgramming(graph, removedCpy, true);
+        lpSolutionTake[branchOn] = 2;
 
-                    break;
-                }
+        if (sum(lpSolutionTake) == optCost) {
+            return lpSolutionTake;
+        }
+
+        // x(branchOn) = 0
+        std::vector <int> neighbours;
+        for (int u : graph[branchOn]) {
+            if (!removed[u]) {
+                removedCpy[u] = true;
+                neighbours.push_back(u);
             }
+        }
+
+        auto lpSolutionNotTake = solveHalfIntegralLinearProgramming(graph, removedCpy, true);
+
+        lpSolutionNotTake[branchOn] = 0;
+
+        for (int u : neighbours) {
+            lpSolutionNotTake[u] = 2;
+        }
+
+        if (sum(lpSolutionNotTake) == optCost) {
+            return lpSolutionNotTake;
         }
     }
 
@@ -151,13 +165,40 @@ void Graph::subgraphVertexCover(bool useLinearProgramming, bool anyLpSolution, s
         verticesToRestore.push_back(v);
     };
 
+    auto removeRedundant = [&]() {
+        while (!vertices.empty() && vertices.begin()->first <= 1) {
+            int v = vertices.begin()->second;
+
+            taken[v] = false;
+            removeVertex(v);
+
+            if (degree[v] == 1) {
+                // find the single unremoved neighbour of v
+                int u = *std::find_if(graph[v].begin(), graph[v].end(), [&](int i) -> bool { return !removed[i]; });
+
+                taken[u] = true;
+                removeVertex(u);
+            }
+        }
+    };
+
     if (useLinearProgramming) {
         bool changed;
 
         // reduce the graph using linear programming as long as it's possible
         do {
+            removeRedundant();
+            if (vertices.empty()) {
+                break;
+            }
+
+            int branchOn = -1;
+            if (!anyLpSolution) {
+                branchOn = vertices.rbegin()->second;
+            }
+
             changed = false;
-            auto lpSolution = solveHalfIntegralLinearProgramming(graph, removed, anyLpSolution);
+            auto lpSolution = solveHalfIntegralLinearProgramming(graph, removed, anyLpSolution, branchOn);
 
             for (int v = 0; v < n; v++) {
                 if (!removed[v] && lpSolution[v] != 1) {
@@ -172,20 +213,7 @@ void Graph::subgraphVertexCover(bool useLinearProgramming, bool anyLpSolution, s
         } while (changed);
     }
 
-    while (!vertices.empty() && vertices.begin()->first <= 1) {
-        int v = vertices.begin()->second;
-
-        taken[v] = false;
-        removeVertex(v);
-
-        if (degree[v] == 1) {
-            // find the single unremoved neighbour of v
-            int u = *std::find_if(graph[v].begin(), graph[v].end(), [&](int i) -> bool { return !removed[i]; });
-
-            taken[u] = true;
-            removeVertex(u);
-        }
-    }
+    removeRedundant();
 
     if (vertices.empty()) {
         updateCover(taken, bestCover);
